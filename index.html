@@ -1,0 +1,1218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Happy Handyman — Fixed Slider + Slips Modal</title>
+<meta name="description" content="Happy Handyman — fixed sliding services, mobile-ready, downloadable slips & booking management" />
+<style>
+  :root{
+    --accent: #2f7a3e;
+    --accent-2: #10789f;
+    --accent-3: #116d51;
+    --bg-1: #f3faf2;
+    --muted: #6b6b6b;
+    --card: #ffffff;
+    --shadow: 0 10px 30px rgba(12,25,12,0.06);
+    --radius: 14px;
+    --ease: cubic-bezier(.22,.9,.3,1);
+    --max-width:1100px;
+    --text: #0e2a2a;
+    --soft: #eef6ef;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;padding:0;font-family:Inter,system-ui,-apple-system,Roboto,Arial;color:var(--text);-webkit-font-smoothing:antialiased}
+  /* bottom padding should be larger than footer height to avoid overlap on small screens */
+  body{background:linear-gradient(180deg,var(--bg-1) 0%,#f1f8ff 100%);padding-bottom:100px}
+  .safe-area{padding-bottom:env(safe-area-inset-bottom)}
+
+  /* topbar */
+  .topbar{position:fixed;top:0;left:0;right:0;height:64px;background:linear-gradient(90deg,var(--accent),var(--accent-2));display:flex;align-items:center;gap:12px;padding:8px 16px;color:#fff;z-index:12000;box-shadow:0 6px 20px rgba(0,0,0,0.12)}
+  .logo{background:#fff;color:var(--accent-3);padding:6px 10px;border-radius:8px;font-weight:800}
+  .title{font-weight:800;font-size:1rem}
+  .menu-btn{background:none;border:0;color:#fff;font-size:26px;padding:6px;cursor:pointer;border-radius:8px}
+  .top-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* TOP BANNER (scrolls with content) */
+  .top-banner{position:relative;margin-top:64px;left:0;right:0;height:220px;display:flex;justify-content:center;align-items:center;z-index:1100;padding:12px;pointer-events:auto}
+  .top-banner .flip-card{width:90%;max-width:var(--max-width);height:100%;perspective:1000px}
+  .flip-card .flip-inner{width:100%;height:100%;position:relative;transition:transform .8s var(--ease);transform-style:preserve-3d}
+  .flip-card.flipped .flip-inner{transform:rotateY(180deg)}
+  .flip-card .face{position:absolute;top:0;left:0;width:100%;height:100%;backface-visibility:hidden;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(12,25,12,0.06)}
+  .flip-card .face.back{transform:rotateY(180deg)}
+  .flip-card img{width:100%;height:100%;object-fit:cover;display:block}
+
+  /* layout: content flows beneath the banner (banner is part of normal flow) */
+  .container{max-width:var(--max-width);margin:28px auto 28px;padding:0 16px}
+  .hero{display:flex;gap:20px;align-items:center;flex-wrap:wrap;background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+  .hero-left{flex:1;min-width:260px}
+  .hero-right{width:260px;flex:0 0 260px}
+  .hero-right img{width:100%;height:220px;object-fit:cover;border-radius:12px;display:block}
+  h1{margin:0;font-size:clamp(1.2rem,2.6vw,1.8rem);color:var(--accent-3)}
+  p.kv{margin:8px 0;color:var(--muted);font-size:0.95rem}
+
+  /* ---------- FIXED SLIDER ---------- */
+  .slider-wrap{margin-top:18px;display:flex;align-items:center;gap:8px}
+  .slider-viewport{width:100%;overflow:hidden;border-radius:12px;background:transparent}
+  .slider-track{display:flex;gap:12px;transition:transform .45s var(--ease);will-change:transform;padding:12px}
+  .slide{flex:0 0 240px;background:linear-gradient(180deg,#fff,#fbfff8);border-radius:12px;padding:12px;box-shadow:0 8px 18px rgba(12,25,12,0.04);display:flex;flex-direction:column;gap:10px}
+  .slide .service-icon{width:48px;height:48px;border-radius:10px;background:linear-gradient(180deg,#f4fff4,#f8fff8);display:flex;align-items:center;justify-content:center;font-size:22px}
+  .slider-nav{display:flex;flex-direction:column;gap:8px}
+  .slider-btn{background:var(--card);border:0;padding:10px;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,0.06);cursor:pointer}
+  .slider-dots{display:flex;gap:6px;justify-content:center;margin-top:8px}
+  .dot{width:8px;height:8px;border-radius:99px;background:#eee;cursor:pointer}
+  .dot.active{background:var(--accent-3)}
+
+  /* other UI */
+  .section{margin:20px 0}
+  .card{background:#fff;border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+  .side-panel{position:fixed;top:0;left:-100%;width:360px;height:100%;padding:18px;background:var(--card);box-shadow:2px 0 36px rgba(0,0,0,0.18);z-index:12500;transition:transform .32s var(--ease)}
+  .side-panel.open{left:0;transform:translateX(0)}
+  .close-side{background:none;border:0;font-size:28px;cursor:pointer;align-self:flex-end}
+  nav a{display:block;padding:10px;border-radius:10px;color:var(--accent-3);text-decoration:none;font-weight:700}
+  .auth-box input{width:100%;padding:10px;border-radius:8px;border:1px solid #e7e7e7;margin-top:8px}
+
+  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:13000;padding:20px; -webkit-overflow-scrolling: touch;}
+  .modal.open{display:flex}
+  .modal .panel{background:#fff;border-radius:12px;padding:18px;max-width:920px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 30px 80px rgba(20,30,20,0.28);pointer-events:auto}
+  .tabs{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .tab{padding:8px 10px;border-radius:8px;border:1px solid #eee;cursor:pointer}
+  .tab.active{background:var(--accent);color:#fff}
+
+  .chat-messages{height:320px;overflow:auto;padding:8px;border-radius:10px;border:1px solid #f0f0f0;display:flex;flex-direction:column;gap:8px;background:#fbfffb}
+  .msg{padding:10px;border-radius:10px;background:#f7fdf2;align-self:flex-start;max-width:78%}
+  .msg.me{background:#dff7ea;align-self:flex-end}
+
+  /* COMPACT FOOTER: almost nav height, name + socials only */
+  .footer{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(90deg,var(--accent-3),var(--accent));color:#fff;padding:6px 12px;z-index:12000;box-shadow:0 -6px 20px rgba(0,0,0,0.12);height:64px}
+  .footer-inner{max-width:var(--max-width);margin:0 auto;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:nowrap;height:100%}
+  .footer-left{display:flex;align-items:center;gap:12px}
+  .footer-left .name{font-weight:800;font-size:0.98rem}
+  .social-links{display:flex;gap:8px;margin-left:6px}
+  .social-links a{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.12);color:#fff;text-decoration:none}
+  .social-links a:hover{background:rgba(255,255,255,0.18)}
+  .footer-right{font-size:0.95rem}
+
+  .btn{background:var(--accent-3);color:#fff;border:0;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+  .btn.ghost{background:transparent;border:1px solid rgba(0,0,0,0.06);color:var(--accent-3)}
+  .small-btn{padding:8px 10px;border-radius:8px;background:#fff;border:1px solid #f0f0f0;cursor:pointer}
+  .kv{color:var(--muted);font-size:0.92rem}
+  .row{display:flex;gap:8px;align-items:center}
+
+  /* make slide buttons stark black & white for visibility */
+  .slide .small-btn, .slide .btn { background:#000;color:#fff;border:0 }
+  .slide .small-btn:hover, .slide .btn:hover { background:#fff;color:#000;border:1px solid #000 }
+
+  /* Improve touch behavior */
+  button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  button { -webkit-appearance: none; }
+
+  @media(max-width:900px){
+    .hero-right{width:100%;flex:1}
+    .side-panel{width:100%}
+    .slide{flex:0 0 72%;min-width:72%}
+    .slider-track{padding:10px}
+    .slider-nav{flex-direction:row}
+    .top-banner{height:180px}
+    .container{margin-top:16px}
+    .footer-inner{flex-wrap:wrap;justify-content:space-between}
+  }
+  @media(max-width:520px){
+    .topbar{height:60px;padding:8px 12px}
+    .menu-btn{font-size:22px}
+    .hero{padding:14px}
+    .slide{flex:0 0 80%}
+    .chat-messages{height:240px}
+    .top-banner{height:140px}
+    .container{margin-top:12px}
+    .footer{height:80px;padding:8px}
+    .footer-inner{flex-direction:column;align-items:flex-start;gap:6px}
+  }
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .item{padding:10px;border-radius:8px;border:1px solid #f0f0f0;background:#fff;margin-bottom:8px}
+  .service-icon{font-size:20px}
+  .bot-avatar{width:40px;height:40px;border-radius:8px;background:linear-gradient(180deg,#fff,#f7fff7);display:flex;align-items:center;justify-content:center}
+  .slips-list .row{justify-content:space-between}
+</style>
+</head>
+<body class="safe-area">
+
+<!-- TOPBAR -->
+<header class="topbar" role="banner">
+  <button id="menuBtn" class="menu-btn" aria-label="Open menu" type="button">&#9776;</button>
+  <div class="logo" aria-hidden="true">HH</div>
+  <div class="title">Happy Handyman</div>
+  <div class="top-actions">
+    <button id="openSlipsBtn" class="small-btn" title="Open booked slips" type="button">Booked Slips</button>
+  </div>
+</header>
+
+<!-- TOP BANNER FLIP (scrolling with content) -->
+<div class="top-banner" aria-hidden="true">
+  <div class="flip-card" id="topFlipCard" aria-hidden="true">
+    <div class="flip-inner">
+      <div class="face front">
+        <img src="mechanic.png" alt="Happy Handyman banner (front)">
+      </div>
+      <div class="face back">
+        <img src="IMG_20251128_151826.jpg" alt="Happy Handyman banner (back)">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SIDE PANEL -->
+<aside class="side-panel" id="sidePanel" aria-hidden="true">
+  <button id="closeSide" class="close-side" aria-label="Close menu" type="button">&times;</button>
+  <div class="auth-box" id="authBox">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <strong>Account</strong>
+      <small id="authStatus" class="kv">Not signed in</small>
+    </div>
+    <div id="loginPane">
+      <input id="loginUser" type="text" placeholder="Username" autocomplete="username">
+      <input id="loginPass" type="password" placeholder="Password" autocomplete="current-password">
+      <div class="row" style="margin-top:8px">
+        <button id="doLogin" class="btn" type="button">Login</button>
+        <button id="showRegister" class="btn ghost" type="button">Create</button>
+      </div>
+    </div>
+    <div id="registerPane" style="display:none">
+      <input id="regUser" type="text" placeholder="Choose a username">
+      <input id="regPass" type="password" placeholder="Choose a password">
+      <input id="regEmail" type="email" placeholder="Email (optional)">
+      <div class="row" style="margin-top:8px">
+        <button id="doRegister" class="btn" type="button">Register</button>
+        <button id="showLogin" class="btn ghost" type="button">Back</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button id="doLogout" class="small-btn" style="display:none" type="button">Logout</button>
+      <button id="btnProfile" class="small-btn" style="display:none" type="button">Profile</button>
+    </div>
+    <div class="kv" style="margin-top:8px">Data stored locally (demo). Admin manages notes & chats.</div>
+  </div>
+
+  <nav style="margin-top:12px">
+    <a href="#about" class="side-link" data-target="about">About</a>
+    <a href="#services" class="side-link" data-target="services">Services</a>
+    <a href="#" id="openOrderFromPanel">Order / Notes</a>
+    <a href="#" id="openChatFromPanel">Contact / Live Chat</a>
+    <a href="#" id="openBotFromPanel">HappyHandyman Bot</a>
+    <a href="#" id="openActivityFromPanel">Our Blog / Activity</a>
+    <hr style="border:none;height:1px;background:#f3f3f3;margin:12px 0">
+    <a href="#" id="openAdmin" style="display:none;color:#b85">Admin Dashboard</a>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+<main class="container" id="main">
+  <section class="hero card" aria-labelledby="heroTitle">
+    <div class="hero-left">
+      <h1 id="heroTitle">Reliable Local Handyman Services</h1>
+      <p class="kv">Plumbing, electrical, carpentry, HVAC, and cleaning — handled by trusted experts near you.</p>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button id="openOrderBtn" class="btn" type="button">Order / Note</button>
+        <button id="openChatBtn" class="btn ghost" type="button">Live Chat</button>
+        <button id="openBotBtn" class="btn" type="button">Ask Bot</button>
+      </div>
+
+      <!-- FIXED SLIDER -->
+      <div class="slider-wrap" aria-label="Services slider" id="servicesWrap">
+        <div class="slider-nav">
+          <button id="slidePrev" class="slider-btn" aria-label="Previous slide" type="button">&#9664;</button>
+        </div>
+
+        <div class="slider-viewport" id="sliderViewport">
+          <div class="slider-track" id="sliderTrack" role="list">
+            <!-- slides will be rendered here -->
+          </div>
+        </div>
+
+        <div class="slider-nav">
+          <button id="slideNext" class="slider-btn" aria-label="Next slide" type="button">&#9654;</button>
+        </div>
+      </div>
+      <div class="slider-dots" id="sliderDots" aria-hidden="true"></div>
+    </div>
+
+    <div class="hero-right" aria-hidden="true">
+      <img src="mechanic.png" alt="Happy Handyman" onerror="this.style.display='none'">
+    </div>
+  </section>
+
+  <section id="about" class="section card">
+    <h2>About Us</h2>
+    <p class="kv">Happy Handyman Services provides skilled, affordable, and reliable home maintenance services across South Africa. Our team specializes in plumbing, electrical, carpentry, HVAC, construction and deep cleaning.</p>
+  </section>
+
+  <section id="services" class="section card">
+    <h2>Services</h2>
+    <p class="kv">Tap a service card for details or click "Book".</p>
+  </section>
+
+  <section id="orderList" class="section card" aria-live="polite">
+    <h2>Saved Notes & Orders</h2>
+    <div id="ordersHistory" class="history"></div>
+  </section>
+
+  <section id="activity" class="section card">
+    <h2>Activity Feed</h2>
+    <div id="activityFeed" class="history"></div>
+  </section>
+
+  <footer style="height:80px"></footer>
+</main>
+
+<!-- ORDER / NOTES MODAL -->
+<div class="modal" id="orderModal" aria-hidden="true">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="orderTitle">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 id="orderTitle">Order / Note</h3>
+      <div class="row">
+        <button id="exportOrdersBtn" class="small-btn" type="button">Export</button>
+        <button id="closeOrderModal" class="small-btn" type="button">Close</button>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" style="margin-top:12px">
+      <div class="tab active" data-tab="orderTab" role="tab" aria-selected="true">📦 Order Request</div>
+      <div class="tab" data-tab="noteTab" role="tab" aria-selected="false">📝 Leave Note</div>
+    </div>
+
+    <div id="orderTab" class="tabpane">
+      <div style="display:grid;gap:8px">
+        <label class="kv">Your name</label>
+        <input id="o_name" type="text" placeholder="Full name">
+        <label class="kv">Contact (phone/email)</label>
+        <input id="o_contact" type="text" placeholder="Phone or email">
+        <label class="kv">Service</label>
+        <select id="o_service"><option>Plumbing</option><option>Electrical</option><option>Carpentry</option><option>Cleaning</option><option>Construction</option><option>HVAC</option></select>
+        <label class="kv">Details</label>
+        <textarea id="o_details" rows="4" placeholder="Describe the issue or request..."></textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+          <button id="saveOrderBtn" class="btn" type="button">Submit Order</button>
+          <button id="resetOrdersModalBtn" class="btn ghost" type="button">Reset All</button>
+          <button id="openSlipsFromOrder" class="small-btn" type="button">Booked Slips</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="noteTab" class="tabpane" style="display:none">
+      <div style="display:grid;gap:8px">
+        <label class="kv">Name</label>
+        <input id="n_name" type="text" placeholder="Full name">
+        <label class="kv">Contact</label>
+        <input id="n_contact" type="text" placeholder="Phone or email">
+        <label class="kv">Note</label>
+        <textarea id="n_note" rows="4" placeholder="Leave a note..."></textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+          <button id="saveNoteBtn" class="btn" type="button">Save Note</button>
+          <button id="resetNotesModalBtn" class="btn ghost" type="button">Reset All</button>
+          <button id="openSlipsFromNote" class="small-btn" type="button">Booked Slips</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT MODAL -->
+<div class="modal" id="chatModal" aria-hidden="true">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="chatTitle">
+    <div class="chat-panel">
+      <div class="chat-header">
+        <div style="display:flex;gap:10px;align-items:center">
+          <div class="bot-avatar">HH</div>
+          <div>
+            <strong>Live Support Chat</strong><div class="kv">Real-time messages (local demo)</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="filterChatInput" class="small-btn" placeholder="Filter chat...">
+          <button id="clearChatBtn" class="small-btn" type="button">Clear</button>
+          <button id="closeChatModal" class="small-btn" type="button">Close</button>
+        </div>
+      </div>
+
+      <div class="chat-messages" id="chatMessages" tabindex="0"></div>
+
+      <div class="chat-input" style="display:flex;gap:8px;margin-top:8px">
+        <input id="chatTxt" placeholder="Type your message..." style="flex:1">
+        <button id="chatSend" class="btn" type="button">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOT MODAL -->
+<div class="modal" id="botModal" aria-hidden="true">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="botTitle">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="bot-avatar">🤖</div>
+        <div><strong id="botTitle">HappyHandyman Bot</strong><div class="kv">Ask me anything about services or basic troubleshooting</div></div>
+      </div>
+      <div>
+        <button id="closeBot" class="small-btn" type="button">Close</button>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <div id="botConversation" class="history" style="min-height:200px"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input id="botInput" placeholder="Ask the bot..." style="flex:1" />
+        <button id="botAsk" class="btn" type="button">Ask</button>
+      </div>
+
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+        <input id="copilotKey" placeholder="Paste OpenAI / Copilot API key (optional)" style="flex:1" class="small-btn" />
+        <button id="saveCopilotKey" class="small-btn" type="button">Save Key</button>
+        <button id="useCopilotToggle" class="small-btn" type="button">Use Copilot: Off</button>
+      </div>
+
+      <div class="kv" style="margin-top:8px">Tip: try "plumbing", "electrical", "price", "how long", "hvac", "geyser". Provide an OpenAI key to enable richer answers (stored locally).</div>
+    </div>
+  </div>
+</div>
+
+<!-- ACTIVITY / BLOG MODAL -->
+<div class="modal" id="activityModal" aria-hidden="true">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="activityTitle">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 id="activityTitle">Our Blog / Activity</h3>
+      <div style="display:flex;gap:8px">
+        <input id="filterActivityInput" class="small-btn" placeholder="Filter activity...">
+        <button id="closeActivityModal" class="small-btn" type="button">Close</button>
+      </div>
+    </div>
+
+    <div style="margin-top:12px" id="activityList"></div>
+
+    <div id="adminPostArea" style="margin-top:12px;display:none">
+      <h4>Create Post (Admin)</h4>
+      <input id="postTitle" placeholder="Title" />
+      <textarea id="postBody" rows="3" placeholder="Write post..."></textarea>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button id="createPostBtn" class="btn" type="button">Create</button>
+        <button id="clearPostsBtn" class="btn ghost" type="button">Clear Posts</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIPS MODAL (replaces direct Download/ZIP top buttons) -->
+<div class="modal" id="slipsModal" aria-hidden="true">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="slipsTitle" style="max-width:720px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 id="slipsTitle">Booked Slips</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="downloadAllZip" class="small-btn" type="button">Download All (.zip)</button>
+        <button id="closeSlipsModal" class="small-btn" type="button">Close</button>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <div id="slipsList" class="slips-list"></div>
+      <div class="kv" style="margin-top:6px">You can download individual slips or all as a ZIP. If your browser blocks downloads (Facebook in-app), slips will open so you can save them manually.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN MODAL -->
+<div class="modal" id="adminLoginModal" aria-hidden="true">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="adminLoginTitle" style="max-width:420px">
+    <h3 id="adminLoginTitle">Admin Login</h3>
+    <div class="kv">Sign in as admin to open the Admin Dashboard</div>
+    <div style="margin-top:12px">
+      <input id="adminLoginUser" placeholder="Username" />
+      <input id="adminLoginPass" placeholder="Password" type="password" />
+      <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">
+        <button id="adminLoginBtn" class="btn" type="button">Login</button>
+        <button id="closeAdminLogin" class="small-btn" type="button">Cancel</button>
+      </div>
+      <div id="adminLoginError" class="kv" style="color:#b33;margin-top:8px;display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN MEGA-MODAL (manager) -->
+<div class="modal" id="adminModal" aria-hidden="true">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="adminTitle" style="max-width:1000px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h2 id="adminTitle">Admin Dashboard</h2>
+      <div style="display:flex;gap:8px">
+        <button id="adminExportBtn" class="small-btn" type="button">Export All</button>
+        <button id="closeAdmin" class="small-btn" type="button">Close</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:8px;width:220px;min-width:200px">
+        <button class="tabAdmin active" data-tab="admin-notes" type="button">Notes</button>
+        <button class="tabAdmin" data-tab="admin-orders" type="button">Orders</button>
+        <button class="tabAdmin" data-tab="admin-chats" type="button">Chats</button>
+        <button class="tabAdmin" data-tab="admin-posts" type="button">Posts</button>
+        <button id="adminClearAll" class="small-btn clear-btn" type="button">Reset All Data</button>
+      </div>
+
+      <div style="flex:1;min-width:260px">
+        <div id="adminContent" class="history" style="min-height:360px;max-height:60vh;overflow:auto"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER (compact: name + social icons only) -->
+<footer class="footer" role="contentinfo" aria-label="Contact information">
+  <div class="footer-inner">
+    <div class="footer-left">
+      <div class="name">Keitumetse Modisenyane</div>
+      <div class="social-links" aria-hidden="false" role="navigation">
+        <a href="#" aria-label="Facebook" title="Facebook">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M22 12a10 10 0 1 0-11.5 9.9v-7H8v-3h2.5V9.5c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.4h-1.2c-1.2 0-1.6.8-1.6 1.6V12H20l-1 3h-2.6v7A10 10 0 0 0 22 12z" fill="#fff"/></svg>
+        </a>
+        <a href="#" aria-label="X" title="X (Twitter)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M23 4.6c-.8.4-1.6.8-2.5.9.9-.5 1.6-1.3 1.9-2.3-.9.6-2 .9-3.1 1.1C18.4 3.8 17 3 15.6 3c-2.6 0-4.6 2.5-3.9 5C9.8 7.9 6.6 6.1 4.6 3.6c-.9 1.6-.4 3.5.9 4.5-.7 0-1.4-.2-1.9-.5v.1c0 2.1 1.5 3.9 3.6 4.3-.6.2-1.2.2-1.8.1.5 1.5 2 2.5 3.7 2.5A8.3 8.3 0 0 1 2 19.6c1.9 1.2 4.2 1.8 6.5 1.8 7.8 0 12-6.5 11.7-12.3.8-.6 1.5-1.4 2-2.3z" fill="#fff"/></svg>
+        </a>
+        <a href="#" aria-label="Instagram" title="Instagram">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 6.4A4.6 4.6 0 1 0 16.6 13 4.6 4.6 0 0 0 12 8.4zm6.2-3.8a1.08 1.08 0 1 0 1.08 1.08A1.08 1.08 0 0 0 18.2 4.6z" fill="#fff"/></svg>
+        </a>
+        <a href="#" aria-label="LinkedIn" title="LinkedIn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 3H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM8.9 18H6.2V10.4h2.7V18zM7.6 9.2a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zM18 18h-2.7v-3.5c0-.8 0-1.8-1.1-1.8s-1.3.9-1.3 1.8V18H9.6V10.4h2.6v1h.1c.4-.7 1.3-1.4 2.6-1.4 2.8 0 3.3 1.8 3.3 4.1V18z" fill="#fff"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer-right">
+      &copy; <span id="year"></span>
+    </div>
+  </div>
+</footer>
+
+<!-- JS: app logic, slider, slips modal, copilot support (compatibility & fallbacks included) -->
+<script>
+/* Final JS: preserved full functionality and added touch-click robustness to ensure the app works inside in-app browsers (Facebook, Instagram, Twitter, etc.)
+   - Adds touch event handling to avoid missing taps in in-app browsers that sometimes swallow click events
+   - Ensures all <button> elements are type="button" (done in markup) and sets up safeguards
+   - Keeps ZIP/download fallbacks, bot and Copilot support, admin, slider, modals, slips etc.
+*/
+
+/* ======= Storage keys & admin ======= */
+const ADMIN_USER = 'keitumetse';
+const ADMIN_PASS = 'modisenyane';
+const KEY_USERS = 'hh_users_final_v3';
+const KEY_CURRENT = 'hh_current_final_v3';
+const KEY_ORDERS = 'hh_orders_final_v3';
+const KEY_CHATS = 'hh_chats_final_v3';
+const KEY_POSTS = 'hh_posts_final_v3';
+const KEY_COPILOT = 'hh_copilot_key_v1';
+const KEY_USE_COPILOT = 'hh_use_copilot_v1';
+
+/* ======= State ======= */
+let users = JSON.parse(localStorage.getItem(KEY_USERS)) || [];
+let currentUser = localStorage.getItem(KEY_CURRENT) || null;
+let orders = JSON.parse(localStorage.getItem(KEY_ORDERS)) || [];
+let chats = JSON.parse(localStorage.getItem(KEY_CHATS)) || [];
+let posts = JSON.parse(localStorage.getItem(KEY_POSTS)) || [];
+let copilotKey = localStorage.getItem(KEY_COPILOT) || '';
+let useCopilot = localStorage.getItem(KEY_USE_COPILOT) === 'true';
+
+/* ensure admin exists */
+if(!users.find(u=>u.user === ADMIN_USER)){
+  users.push({user:ADMIN_USER,pass:ADMIN_PASS,email:''});
+  localStorage.setItem(KEY_USERS, JSON.stringify(users));
+}
+
+/* helper selectors */
+const el = id => document.getElementById(id);
+const q = sel => document.querySelector(sel);
+
+/* elements */
+const menuBtn = el('menuBtn'), sidePanel = el('sidePanel'), closeSide = el('closeSide');
+const loginPane = el('loginPane'), registerPane = el('registerPane'), showRegister = el('showRegister'), showLogin = el('showLogin');
+const doLogin = el('doLogin'), doRegister = el('doRegister'), doLogout = el('doLogout'), authStatus = el('authStatus');
+const openOrderBtn = el('openOrderBtn'), openOrderFromPanel = el('openOrderFromPanel'), orderModal = el('orderModal'), closeOrderModal = el('closeOrderModal');
+const saveOrderBtn = el('saveOrderBtn'), saveNoteBtn = el('saveNoteBtn');
+const exportOrdersBtn = el('exportOrdersBtn'), resetOrdersModalBtn = el('resetOrdersModalBtn'), resetNotesModalBtn = el('resetNotesModalBtn');
+const ordersHistoryEl = el('ordersHistory');
+const openChatBtn = el('openChatBtn'), openChatFromPanel = el('openChatFromPanel'), chatModal = el('chatModal'), closeChatModal = el('closeChatModal');
+const chatMessages = el('chatMessages'), chatSend = el('chatSend'), chatTxt = el('chatTxt'), clearChatBtn = el('clearChatBtn'), filterChatInput = el('filterChatInput');
+const botModal = el('botModal'), openBotBtn = el('openBotBtn'), openBotFromPanel = el('openBotFromPanel'), closeBot = el('closeBot'), botInput = el('botInput'), botAsk = el('botAsk'), botConversation = el('botConversation');
+const copilotKeyInput = el('copilotKey'), saveCopilotKeyBtn = el('saveCopilotKey'), useCopilotToggle = el('useCopilotToggle');
+const activityModal = el('activityModal'), openActivityFromPanel = el('openActivityFromPanel'), closeActivityModal = el('closeActivityModal'), activityList = el('activityList');
+const adminPostArea = el('adminPostArea'), createPostBtn = el('createPostBtn'), postTitleInput = el('postTitle'), postBodyInput = el('postBody');
+const adminLoginModal = el('adminLoginModal'), adminLoginBtn = el('adminLoginBtn'), adminLoginUser = el('adminLoginUser'), adminLoginPass = el('adminLoginPass'), adminLoginError = el('adminLoginError');
+const openAdmin = el('openAdmin'), adminModal = el('adminModal'), closeAdmin = el('closeAdmin'), adminExportBtn = el('adminExportBtn'), adminContent = el('adminContent'), adminTabs = document.querySelectorAll('.tabAdmin'), adminClearAll = el('adminClearAll');
+const activityFeedEl = el('activityFeed');
+const sliderTrack = el('sliderTrack'), slidePrev = el('slidePrev'), slideNext = el('slideNext'), sliderDots = el('sliderDots');
+const sliderViewport = el('sliderViewport'), servicesWrap = el('servicesWrap');
+const openSlipsBtn = el('openSlipsBtn'), slipsModal = el('slipsModal'), closeSlipsModal = el('closeSlipsModal'), slipsListEl = el('slipsList'), downloadAllZipBtn = el('downloadAllZip');
+const openSlipsFromOrder = el('openSlipsFromOrder'), openSlipsFromNote = el('openSlipsFromNote');
+const yearEl = el('year');
+const topFlipCard = el('topFlipCard');
+
+/* set year */
+if(yearEl) yearEl.textContent = new Date().getFullYear();
+
+/* simple detection for in-app browsers like Facebook/Instagram — used to select safer download strategy */
+function isInAppBrowser(){
+  const ua = navigator.userAgent || '';
+  return /FBAN|FBAV|Instagram|FB_IAB|Twitter|LinkedInApp|Line/i.test(ua);
+}
+const inApp = isInAppBrowser();
+
+/* pre-load banner images */
+(function preloadBanner(){
+  const imgs = ['mechanic.png','IMG_20251128_151826.jpg'];
+  imgs.forEach(s=>{ const i=new Image(); i.src=s; });
+})();
+
+/* top banner flip behavior: toggle every 5s */
+(function bannerFlip(){
+  if(!topFlipCard) return;
+  let flipped = false;
+  setTimeout(()=>{
+    flipped = false;
+    topFlipCard.classList.toggle('flipped', flipped);
+    setInterval(()=>{
+      flipped = !flipped;
+      topFlipCard.classList.toggle('flipped', flipped);
+    }, 5000);
+  }, 400);
+})();
+
+/* set local storage save */
+function saveToStorage(){
+  localStorage.setItem(KEY_USERS, JSON.stringify(users));
+  localStorage.setItem(KEY_ORDERS, JSON.stringify(orders));
+  localStorage.setItem(KEY_CHATS, JSON.stringify(chats));
+  localStorage.setItem(KEY_POSTS, JSON.stringify(posts));
+  if(currentUser) localStorage.setItem(KEY_CURRENT, currentUser); else localStorage.removeItem(KEY_CURRENT);
+  localStorage.setItem(KEY_COPILOT, copilotKey || '');
+  localStorage.setItem(KEY_USE_COPILOT, useCopilot ? 'true' : 'false');
+}
+
+/* safe escape */
+function escapeHtml(s){ if(s===undefined||s===null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+
+/* modal helper */
+function openModal(mod){ if(!mod) return; mod.classList.add('open'); mod.setAttribute('aria-hidden','false'); document.body.style.overflow = 'hidden'; }
+function closeModal(mod){ if(!mod) return; mod.classList.remove('open'); mod.setAttribute('aria-hidden','true'); document.body.style.overflow = ''; }
+
+/* ---------------------------
+   Touch & click robustness
+   ---------------------------
+   Use a small timing guard to avoid double-fire: when touchend fires we call the handler directly,
+   then clicks following shortly after are ignored.
+*/
+let _lastTouchTime = 0;
+function touchGuarded(handler){
+  return function(ev){
+    // if this is a touch event, call handler and set last touch time
+    if(ev.type === 'touchend' || ev.type === 'touchstart' || ev.type === 'pointerup'){
+      _lastTouchTime = Date.now();
+      try{ handler(ev); }catch(e){ console.error(e); }
+      if(ev.cancelable) ev.preventDefault();
+      return;
+    }
+    // for click events, ignore if a recent touch happened
+    if(Date.now() - _lastTouchTime < 700) return;
+    try{ handler(ev); }catch(e){ console.error(e); }
+  };
+}
+
+// Helper to attach both touchend and click with guard
+function addTapListener(elm, fn){
+  if(!elm) return;
+  elm.addEventListener('touchend', touchGuarded(fn), {passive:false});
+  elm.addEventListener('click', touchGuarded(fn));
+}
+
+/* close when click/tap outside */
+[orderModal, chatModal, botModal, activityModal, adminLoginModal, adminModal, slipsModal].forEach(mod => {
+  if(!mod) return;
+  mod.addEventListener('click', (e) => { if(e.target === mod) closeModal(mod); });
+});
+document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ [orderModal,chatModal,botModal,activityModal,adminLoginModal,adminModal,slipsModal].forEach(m=>closeModal(m)); sidePanel && sidePanel.classList.remove('open'); } });
+
+/* Attach robust tap listeners to primary controls */
+addTapListener(menuBtn, ()=>{ sidePanel.classList.toggle('open'); sidePanel.setAttribute('aria-hidden', String(!sidePanel.classList.contains('open'))); });
+addTapListener(closeSide, ()=>{ sidePanel.classList.remove('open'); sidePanel.setAttribute('aria-hidden','true'); });
+
+addTapListener(openOrderBtn, ()=> openModal(orderModal));
+addTapListener(openOrderFromPanel, (e)=>{ e && e.preventDefault(); openModal(orderModal); sidePanel && sidePanel.classList.remove('open'); });
+addTapListener(closeOrderModal, ()=> closeModal(orderModal));
+
+addTapListener(openChatBtn, ()=> openModal(chatModal));
+addTapListener(openChatFromPanel, (e)=>{ e && e.preventDefault(); openModal(chatModal); sidePanel && sidePanel.classList.remove('open'); });
+addTapListener(closeChatModal, ()=> closeModal(chatModal));
+
+addTapListener(openBotBtn, ()=> { copilotKeyInput && (copilotKeyInput.value = copilotKey || ''); updateCopilotToggleUI(); openModal(botModal); });
+addTapListener(openBotFromPanel, (e)=>{ e && e.preventDefault(); openModal(botModal); sidePanel && sidePanel.classList.remove('open'); });
+addTapListener(closeBot, ()=> closeModal(botModal));
+
+addTapListener(openActivityFromPanel, (e)=>{ e && e.preventDefault(); openModal(activityModal); renderActivityList(); sidePanel && sidePanel.classList.remove('open'); });
+addTapListener(closeActivityModal, ()=> closeModal(activityModal));
+
+addTapListener(openSlipsBtn, ()=>{ renderSlipsList(); openModal(slipsModal); });
+addTapListener(closeSlipsModal, ()=> closeModal(slipsModal));
+addTapListener(openSlipsFromOrder, ()=>{ renderSlipsList(); openModal(slipsModal); });
+addTapListener(openSlipsFromNote, ()=>{ renderSlipsList(); openModal(slipsModal); });
+
+addTapListener(slideNext, ()=> nextSlide());
+addTapListener(slidePrev, ()=> prevSlide());
+
+/* Ensure all dynamically created buttons are treated properly: set type=button if missing */
+document.querySelectorAll('button').forEach(b => { if(!b.hasAttribute('type')) b.setAttribute('type','button'); });
+
+/* ---------------------------
+   Register / Login
+   --------------------------- */
+if(showRegister && showLogin){
+  addTapListener(showRegister, ()=>{ loginPane.style.display='none'; registerPane.style.display='block'; });
+  addTapListener(showLogin, ()=>{ registerPane.style.display='none'; loginPane.style.display='block'; });
+}
+if(doRegister){
+  addTapListener(doRegister, ()=>{
+    const u = (el('regUser')?.value || '').trim(); const p = (el('regPass')?.value || ''); const e = (el('regEmail')?.value || '').trim();
+    if(!u||!p){ alert('Provide username and password'); return; }
+    if(users.some(x=>x.user.toLowerCase() === u.toLowerCase())){ alert('Username exists'); return; }
+    users.push({user:u,pass:p,email:e}); currentUser = u; saveToStorage(); updateAuthUI(); alert('Registered and signed in: ' + u);
+  });
+}
+if(doLogin){
+  addTapListener(doLogin, ()=>{
+    const u = (el('loginUser')?.value || '').trim(); const p = (el('loginPass')?.value || '');
+    if(!u||!p){ alert('Enter credentials'); return; }
+    const found = users.find(x=>x.user===u && x.pass===p);
+    if(!found){ alert('Invalid credentials'); return; }
+    currentUser = u; updateAuthUI(); alert('Signed in: ' + u);
+  });
+}
+if(doLogout) addTapListener(doLogout, ()=>{ if(!currentUser) return; if(!confirm('Logout ' + currentUser + '?')) return; currentUser = null; updateAuthUI(); });
+
+function updateAuthUI(){ if(authStatus) authStatus.textContent = currentUser ? 'Signed in: ' + currentUser : 'Not signed in'; if(doLogout) doLogout.style.display = currentUser ? 'inline-block' : 'none'; if(openAdmin) openAdmin.style.display = (currentUser === ADMIN_USER) ? 'block' : 'none'; if(adminPostArea) adminPostArea.style.display = (currentUser === ADMIN_USER) ? 'block' : 'none'; saveToStorage(); renderAll(); }
+
+/* ======= SERVICES DATA ======= */
+const services = [
+  { key:'plumbing', icon:'🚰', name:'Plumbing', desc:'Pipe repairs, geyser service & drain cleaning.' },
+  { key:'electrical', icon:'💡', name:'Electrical', desc:'Wiring, lighting, sockets & safety checks.' },
+  { key:'carpentry', icon:'🪚', name:'Carpentry', desc:'Cabinets, furniture, shelves & fittings.' },
+  { key:'cleaning', icon:'🧹', name:'Cleaning', desc:'Deep cleaning, upholstery & commercial cleaning.' },
+  { key:'construction', icon:'🏗️', name:'Renovations', desc:'Painting, flooring, tiling & small builds.' },
+  { key:'hvac', icon:'❄️', name:'HVAC', desc:'Heating & cooling systems, maintenance & fixes.' },
+  { key:'geyser', icon:'🔥', name:'Geyser Repair', desc:'Geyser servicing, leaks and replacements.' },
+  { key:'security', icon:'🔒', name:'Security', desc:'Mounting, sensors, and home safety services.' }
+];
+
+/* render fixed slider */
+function renderSlider(){
+  if(!sliderTrack) return;
+  sliderTrack.innerHTML = '';
+  services.forEach(s=>{
+    const slide = document.createElement('div');
+    slide.className = 'slide';
+    slide.setAttribute('data-key', s.key);
+    slide.setAttribute('role','listitem');
+    slide.innerHTML = `<div style="display:flex;gap:12px;align-items:center">
+        <div class="service-icon">${s.icon}</div>
+        <div><strong>${escapeHtml(s.name)}</strong><div class="kv" style="margin-top:6px">${escapeHtml(s.desc)}</div></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+        <button class="small-btn btn book-service" data-key="${escapeHtml(s.key)}" type="button">Details</button>
+        <button class="small-btn btn book-now" data-key="${escapeHtml(s.key)}" type="button">Book</button>
+      </div>`;
+    sliderTrack.appendChild(slide);
+  });
+  setTimeout(()=>{ createDots(); updateSlider(); }, 80);
+}
+renderSlider();
+
+/* slider mechanics */
+let currentSlideIndex = 0;
+function slidesPerView(){
+  if(!sliderViewport) return 1;
+  const w = sliderViewport.clientWidth;
+  if(w < 520) return 1;
+  if(w < 900) return 1;
+  return Math.max(1, Math.floor((w) / 252));
+}
+
+function updateSlider(){
+  if(!sliderTrack || !sliderViewport) return;
+  const slides = Array.from(sliderTrack.children);
+  if(!slides.length) return;
+  const spv = slidesPerView();
+  if(currentSlideIndex > slides.length - spv) currentSlideIndex = Math.max(0, slides.length - spv);
+  const slideEl = slides[0];
+  const slideWidth = slideEl.offsetWidth || 240;
+  const gap = 12;
+  const offset = currentSlideIndex * (slideWidth + gap);
+  sliderTrack.style.transform = `translateX(-${offset}px)`;
+  updateDots();
+}
+
+function nextSlide(){
+  const slides = sliderTrack.children.length;
+  const spv = Math.max(1, slidesPerView());
+  if(currentSlideIndex < slides - spv) currentSlideIndex++; else currentSlideIndex = 0;
+  updateSlider(); resetSliderTimer();
+}
+function prevSlide(){
+  const slides = sliderTrack.children.length;
+  const spv = Math.max(1, slidesPerView());
+  if(currentSlideIndex > 0) currentSlideIndex--; else currentSlideIndex = Math.max(0, slides - spv);
+  updateSlider(); resetSliderTimer();
+}
+
+/* touch swipe for slider */
+let touchStartX = 0, touchEndX = 0;
+if(sliderViewport){
+  sliderViewport.addEventListener('touchstart', (e)=>{ touchStartX = e.changedTouches[0].clientX; }, {passive:true});
+  sliderViewport.addEventListener('touchend', (e)=>{ touchEndX = e.changedTouches[0].clientX; const d = touchEndX - touchStartX; if(Math.abs(d) > 40){ if(d < 0) nextSlide(); else prevSlide(); } }, {passive:true});
+}
+
+/* keyboard nav */
+document.addEventListener('keydown',(e)=>{ const activeIsBody = document.activeElement === document.body || document.activeElement === sliderViewport; if(activeIsBody){ if(e.key==='ArrowLeft') prevSlide(); if(e.key==='ArrowRight') nextSlide(); } });
+
+/* autoplay */
+let sliderTimer = setInterval(nextSlide, 5000);
+function resetSliderTimer(){ clearInterval(sliderTimer); sliderTimer = setInterval(nextSlide, 5000); }
+
+/* dots */
+function createDots(){
+  if(!sliderDots || !sliderTrack) return;
+  sliderDots.innerHTML = '';
+  const slides = sliderTrack.children.length;
+  const spv = slidesPerView();
+  const maxIndex = Math.max(1, slides - spv + 1);
+  for(let i=0;i<maxIndex;i++){
+    const d = document.createElement('div');
+    d.className = 'dot';
+    d.setAttribute('data-index', i);
+    addTapListener(d, ()=>{ currentSlideIndex = i; updateSlider(); resetSliderTimer(); });
+    sliderDots.appendChild(d);
+  }
+}
+function updateDots(){
+  if(!sliderDots) return;
+  const dots = Array.from(sliderDots.children);
+  dots.forEach(d => d.classList.toggle('active', Number(d.dataset.index) === currentSlideIndex));
+}
+
+/* Delegated click/tap handling for slide buttons and history buttons */
+function delegatedHandler(e){
+  const target = e.target;
+  // book-service / book-now
+  const detailBtn = target.closest && target.closest('.book-service');
+  if(detailBtn){ const key = detailBtn.getAttribute('data-key'); const s = services.find(x=>x.key===key); if(s){ prefillOrderForService(s); openModal(orderModal); } return; }
+  const bookBtn = target.closest && target.closest('.book-now');
+  if(bookBtn){ const key = bookBtn.getAttribute('data-key'); const s = services.find(x=>x.key===key); if(s){ prefillOrderForService(s); openModal(orderModal); } return; }
+
+  // orders history buttons
+  const del = target.closest && target.closest('button[data-action="delete-item"]');
+  if(del){ const id = Number(del.getAttribute('data-id')); if(!confirm('Delete this item?')) return; orders = orders.filter(o=>o.id !== id); saveToStorage(); renderOrders(); renderActivity(); return; }
+  const slipBtn = target.closest && target.closest('button[data-action="download-slip"]');
+  if(slipBtn){ const id = Number(slipBtn.getAttribute('data-id')); const item = orders.find(o=>o.id === id); if(item) downloadSlipForBooking(item); return; }
+};
+document.addEventListener('click', touchGuarded(delegatedHandler));
+document.addEventListener('touchend', touchGuarded(delegatedHandler), {passive:false});
+
+/* ensure slider updates on resize */
+window.addEventListener('resize', ()=>{ createDots(); updateSlider(); });
+
+/* ===== ORDERS & NOTES ===== */
+function prefillOrderForService(s){
+  if(el('o_service')) el('o_service').value = s.name;
+  if(el('o_details')) el('o_details').value = s.name + ' — Please provide details';
+}
+function openOrderModal(){ openModal(orderModal); sidePanel && sidePanel.classList.remove('open'); }
+addTapListener(saveOrderBtn, ()=>{
+  const name = (el('o_name')?.value || '').trim();
+  const contact = (el('o_contact')?.value || '').trim();
+  const service = (el('o_service')?.value || '');
+  const details = (el('o_details')?.value || '').trim();
+  if(!name || !contact || !details){ alert('Please fill name, contact and details'); return; }
+  const obj = { id: Date.now(), type:'order', name, contact, service, details, user: currentUser || 'guest', when:new Date().toISOString() };
+  orders.unshift(obj);
+  saveToStorage();
+  closeModal(orderModal);
+  renderOrders(); renderActivity();
+  alert('Order saved locally.');
+});
+addTapListener(saveNoteBtn, ()=>{
+  const name = (el('n_name')?.value || '').trim();
+  const contact = (el('n_contact')?.value || '').trim();
+  const note = (el('n_note')?.value || '').trim();
+  if(!name || !contact || !note){ alert('Please fill name, contact and note'); return; }
+  const obj = { id: Date.now(), type:'note', name, contact, note, user: currentUser || 'guest', when:new Date().toISOString() };
+  orders.unshift(obj);
+  saveToStorage();
+  closeModal(orderModal);
+  renderOrders(); renderActivity();
+  alert('Note saved locally.');
+});
+
+/* render orders with Slip & Delete buttons */
+function renderOrders(filter=''){
+  if(!ordersHistoryEl) return;
+  const f = (filter||'').toLowerCase();
+  if(!orders.length){ ordersHistoryEl.innerHTML = '<div class="kv">No orders or notes saved.</div>'; return; }
+  ordersHistoryEl.innerHTML = orders.filter(o=> !f || JSON.stringify(o).toLowerCase().includes(f)).map(o=>{
+    if(o.type === 'order'){
+      return `<div class="item" data-id="${o.id}"><div style="display:flex;justify-content:space-between"><strong>Order: ${escapeHtml(o.service)}</strong><small>${new Date(o.when).toLocaleString()}</small></div>
+        <div class="kv">${escapeHtml(o.name)} • ${escapeHtml(o.contact)} • ${escapeHtml(o.user)}</div>
+        <div style="margin-top:6px">${escapeHtml(o.details)}</div>
+        <div style="margin-top:8px;display:flex;gap:8px"><button class="small-btn" data-id="${o.id}" data-action="download-slip" type="button">Slip</button><button class="small-btn" data-id="${o.id}" data-action="delete-item" type="button">Delete</button></div></div>`;
+    } else {
+      return `<div class="item" data-id="${o.id}"><div style="display:flex;justify-content:space-between"><strong>Note: ${escapeHtml(o.name)}</strong><small>${new Date(o.when).toLocaleString()}</small></div>
+        <div class="kv">${escapeHtml(o.contact)} • ${escapeHtml(o.user)}</div>
+        <div style="margin-top:6px">${escapeHtml(o.note)}</div>
+        <div style="margin-top:8px;display:flex;gap:8px"><button class="small-btn" data-id="${o.id}" data-action="download-slip" type="button">Slip</button><button class="small-btn" data-id="${o.id}" data-action="delete-item" type="button">Delete</button></div></div>`;
+    }
+  }).join('');
+}
+
+/* export/reset controls */
+addTapListener(exportOrdersBtn, ()=> downloadJSON(orders, 'hh_orders_notes.json'));
+addTapListener(resetOrdersModalBtn, ()=>{ if(!confirm('Reset all orders?')) return; orders = []; saveToStorage(); renderOrders(); renderActivity(); });
+addTapListener(resetNotesModalBtn, ()=>{ if(!confirm('Reset all notes?')) return; orders = orders.filter(o=>o.type!=='note'); saveToStorage(); renderOrders(); renderActivity(); });
+
+/* ===== SLIPS MODAL ===== */
+addTapListener(openSlipsBtn, ()=>{ renderSlipsList(); openModal(slipsModal); });
+addTapListener(closeSlipsModal, ()=> closeModal(slipsModal));
+addTapListener(openSlipsFromOrder, ()=> { renderSlipsList(); openModal(slipsModal); });
+addTapListener(openSlipsFromNote, ()=> { renderSlipsList(); openModal(slipsModal); });
+
+function renderSlipsList(){
+  if(!slipsListEl) return;
+  if(!orders.length){ slipsListEl.innerHTML = '<div class="kv">No booked slips available.</div>'; return; }
+  slipsListEl.innerHTML = orders.map(o=>`<div class="item" data-id="${o.id}"><div style="display:flex;justify-content:space-between;align-items:center"><div><strong>${o.type==='order' ? 'Order' : 'Note'}</strong><div class="kv">${escapeHtml(o.user)} • ${new Date(o.when).toLocaleString()}</div></div><div class="row"><button class="small-btn" data-id="${o.id}" data-action="download-slip" type="button">Download Slip</button><button class="small-btn" data-id="${o.id}" data-action="delete-slip" type="button">Delete</button></div></div><div style="margin-top:6px">${o.type==='order' ? escapeHtml(o.service) + ' — ' + escapeHtml(o.details) : escapeHtml(o.note)}</div></div>`).join('');
+}
+
+/* handle download / delete inside slips modal */
+slipsListEl && slipsListEl.addEventListener('click',(e)=>{
+  const dl = e.target.closest && e.target.closest('button[data-action="download-slip"]');
+  if(dl){ const id = Number(dl.getAttribute('data-id')); const item = orders.find(o=>o.id === id); if(item) downloadSlipForBooking(item); return; }
+  const del = e.target.closest && e.target.closest('button[data-action="delete-slip"]');
+  if(del){ const id = Number(del.getAttribute('data-id')); if(!confirm('Delete this slip?')) return; orders = orders.filter(o=>o.id !== id); saveToStorage(); renderSlipsList(); renderOrders(); renderActivity(); return; }
+});
+
+/* robust download helpers: try blob download, then open in new tab, then navigator.share where available */
+function tryDownloadBlob(blob, filename){
+  try{
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename || 'file.txt'; document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    return true;
+  }catch(err){
+    return false;
+  }
+}
+function openInNewTabWithBlob(content, mime='text/plain', filename){
+  try{
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const w = window.open(url, '_blank');
+    if(w) return true;
+    // fallback: navigate current window (user can Save As)
+    window.location.href = url;
+    return true;
+  }catch(err){
+    return false;
+  }
+}
+async function tryShareText(title, text){
+  if(navigator.share){
+    try{
+      await navigator.share({title, text});
+      return true;
+    }catch(e){ return false; }
+  }
+  return false;
+}
+
+/* ===== SLIP GENERATOR (.txt) ===== */
+function generateSlipText(b){
+  return `HappyHandyman Booking Slip
+------------------------------
+Booking ID: ${b.id}
+Date: ${new Date(b.when).toLocaleString()}
+
+Name: ${b.name || 'N/A'}
+Contact: ${b.contact || 'N/A'}
+User: ${b.user || 'guest'}
+
+Type: ${b.type === 'order' ? 'Order Request' : 'Note'}
+
+${b.type === 'order' ? 'Service: ' + b.service : ''}
+Details:
+${b.type === 'order' ? b.details : b.note}
+
+------------------------------
+Thank you for choosing HappyHandyman!
+Reliable Local Services.
+`;
+}
+
+/* download single slip: try download; if blocked, open text in new tab; also offer native share where possible */
+function downloadSlipForBooking(b){
+  const text = generateSlipText(b);
+  try{
+    const blob = new Blob([text], { type:'text/plain' });
+    // Try primary download
+    if(tryDownloadBlob(blob, `HappyHandyman_Slip_${b.id}.txt`)){
+      return;
+    }
+    // If in-app or download blocked, try navigator.share
+    tryShareText(`HappyHandyman Slip ${b.id}`, text).then(shared=>{
+      if(shared) return;
+      // final fallback: open in new tab so user can save manually
+      openInNewTabWithBlob(text, 'text/plain', `HappyHandyman_Slip_${b.id}.txt`);
+    });
+  }catch(err){
+    // safest fallback
+    openInNewTabWithBlob(text, 'text/plain', `HappyHandyman_Slip_${b.id}.txt`);
+  }
+}
+
+/* download all as zip (lazy loads JSZip). If JSZip can't be loaded or blocked, fallback to combined text file */
+addTapListener(downloadAllZipBtn, async ()=>{
+  if(!orders.length){ alert('No slips to zip.'); return; }
+  if(!confirm('Create ZIP containing all slips and download now?')) return;
+  try{
+    if(!window.JSZip){
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+    }
+    if(window.JSZip){
+      const zip = new JSZip();
+      orders.forEach(o=>{
+        const text = generateSlipText(o);
+        zip.file(`HappyHandyman_Slip_${o.id}.txt`, text);
+      });
+      const blob = await zip.generateAsync({type:'blob'});
+      if(tryDownloadBlob(blob, 'happy-handyman-slips.zip')) return;
+      throw new Error('Download blocked — falling back');
+    } else {
+      throw new Error('JSZip not available');
+    }
+  }catch(err){
+    try{
+      const combined = orders.map(o=>generateSlipText(o)).join('\n\n==== Combined Slips Separator ====\n\n');
+      const blob = new Blob([combined], { type:'text/plain' });
+      if(tryDownloadBlob(blob, 'happy-handyman-slips.txt')) return;
+      const shared = await tryShareText('HappyHandyman slips', combined);
+      if(shared) return;
+      openInNewTabWithBlob(combined, 'text/plain', 'happy-handyman-slips.txt');
+    }catch(e){
+      alert('Unable to create ZIP or combined slips for download. Please try on a standard browser or open the site directly (not via in-app browser).');
+    }
+  }
+});
+
+/* ===== DOWNLOAD JSON helper ===== */
+function downloadJSON(obj, name='data.json'){ try{ const blob = new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}); if(tryDownloadBlob(blob, name)) return; openInNewTabWithBlob(JSON.stringify(obj,null,2), 'application/json', name); }catch(err){ alert('Export failed: '+err.message); } }
+
+/* dynamic loader for external scripts */
+function loadScript(src){
+  return new Promise((resolve,reject)=>{
+    try{
+      const s = document.createElement('script'); s.src = src; s.onload = ()=>resolve(); s.onerror = ()=>reject(new Error('Failed to load ' + src)); document.head.appendChild(s);
+    }catch(err){ reject(err); }
+  });
+}
+
+/* ===== CHAT ===== */
+addTapListener(openChatBtn, ()=>{ openModal(chatModal); renderChat(); });
+addTapListener(openChatFromPanel, (e)=>{ e && e.preventDefault(); openModal(chatModal); renderChat(); });
+addTapListener(closeChatModal, ()=> closeModal(chatModal));
+
+function renderChat(filter=''){
+  if(!chatMessages) return;
+  const f = (filter||'').toLowerCase();
+  const visible = chats.filter(m => currentUser === ADMIN_USER ? true : m.user === currentUser).filter(m => !f || JSON.stringify(m).toLowerCase().includes(f));
+  if(!visible.length){ chatMessages.innerHTML = '<div class="kv">No messages available.</div>'; return; }
+  chatMessages.innerHTML = visible.map(m=>`<div class="${m.user === currentUser ? 'msg me' : 'msg'}"><div style="font-weight:700">${escapeHtml(m.user)}</div><div style="margin-top:6px">${escapeHtml(m.text)}</div><small class="kv">${new Date(m.when).toLocaleString()}</small></div>`).join('');
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+addTapListener(chatSend, ()=>{ const txt = (chatTxt?.value||'').trim(); if(!txt) return; const msg={id:Date.now(),user:currentUser||'guest',text:txt,when:new Date().toISOString()}; chats.push(msg); saveToStorage(); if(chatTxt) chatTxt.value=''; renderChat(); renderActivity(); });
+if(chatTxt) chatTxt.addEventListener('keydown',(e)=>{ if(e.key==='Enter') chatSend && chatSend.click(); });
+addTapListener(clearChatBtn, ()=>{ if(!confirm('Clear chat history?')) return; chats=[]; saveToStorage(); renderChat(); renderActivity(); });
+if(filterChatInput) filterChatInput.addEventListener('input', ()=> renderChat(filterChatInput.value) );
+
+/* ===== BOT with optional Copilot/OpenAI integration ===== */
+addTapListener(openBotBtn, ()=> { copilotKeyInput.value = copilotKey || ''; updateCopilotToggleUI(); openModal(botModal); });
+addTapListener(openBotFromPanel, (e)=>{ e && e.preventDefault(); openModal(botModal); });
+addTapListener(closeBot, ()=> closeModal(botModal));
+
+function appendBotMessage(who,text){
+  if(!botConversation) return;
+  const node = document.createElement('div'); node.className='item'; node.innerHTML = `<div style="display:flex;justify-content:space-between"><strong>${escapeHtml(who)}</strong><small class="kv">${new Date().toLocaleString()}</small></div><div style="margin-top:8px">${escapeHtml(text)}</div>`; botConversation.appendChild(node); botConversation.scrollTop = botConversation.scrollHeight;
+}
+function localBotReply(question){
+  const q = (question||'').toLowerCase();
+  if(!q) return "Hi — how can I help? Try 'plumbing', 'electrical', 'price', or 'booking'.";
+  if(q.includes('plumb')||q.includes('leak')||q.includes('geyser')||q.includes('drain')) return "Plumbing tips: turn off water for major leaks. For geyser problems call a professional.";
+  if(q.includes('elect')||q.includes('light')||q.includes('socket')) return "Electrical tips: isolate power before working on wiring. Call a qualified electrician.";
+  if(q.includes('price')||q.includes('cost')) return "Small jobs start from R350 — final price depends on parts & time.";
+  if(q.includes('book')||q.includes('order')) return "Use 'Order / Note' to submit details. Admin will reply.";
+  return "I can help with services, pricing, and how to submit orders. Submit an order for a formal quote.";
+}
+
+/* UI for Copilot key and toggle */
+addTapListener(saveCopilotKeyBtn, ()=>{
+  copilotKey = (copilotKeyInput?.value||'').trim();
+  localStorage.setItem(KEY_COPILOT, copilotKey);
+  alert(copilotKey ? 'Copilot key saved locally.' : 'Copilot key cleared.');
+});
+addTapListener(useCopilotToggle, ()=>{
+  useCopilot = !useCopilot;
+  updateCopilotToggleUI();
+  localStorage.setItem(KEY_USE_COPILOT, useCopilot ? 'true' : 'false');
+});
+function updateCopilotToggleUI(){
+  if(!useCopilotToggle) return;
+  useCopilotToggle.textContent = 'Use Copilot: ' + (useCopilot ? 'On' : 'Off');
+  copilotKeyInput.value = copilotKey || '';
+}
+
+/* basic function to call OpenAI Chat Completions using stored key.
+   NOTE: This will make a direct call to OpenAI endpoints from the browser using the provided key.
+   You are responsible for API usage and key safety. This is optional — if no key or error, fallback to local rules.
+*/
+async function callCopilot(question){
+  if(!copilotKey) throw new Error('No Copilot/OpenAI API key present.');
+  const url = 'https://api.openai.com/v1/chat/completions';
+  const body = {
+    model: 'gpt-4o-mini',
+    messages: [
+      { role:'system', content: 'You are HappyHandyman assistant. Answer politely and concisely, include suggestions and next steps.'},
+      { role:'user', content: question }
+    ],
+    max_tokens: 600,
+    temperature: 0.2
+  };
+  const resp = await fetch(url, {
+    method:'POST',
+    headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + copilotKey },
+    body: JSON.stringify(body)
+  });
+  if(!resp.ok){
+    const txt = await resp.text().catch(()=> '');
+    throw new Error('API error: ' + resp.status + ' ' + txt);
+  }
+  const data = await resp.json();
+  const msg = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text || '';
+  return msg;
+}
+
+addTapListener(botAsk, async ()=>{
+  const q = (botInput?.value||'').trim();
+  if(!q) return;
+  appendBotMessage(currentUser||'You', q);
+  if(botInput) botInput.value='';
+  appendBotMessage('Bot','...'); // placeholder
+  try{
+    if(useCopilot && copilotKey){
+      const reply = await callCopilot(q);
+      const items = botConversation.querySelectorAll('.item');
+      const last = items[items.length-1];
+      if(last && last.textContent && last.textContent.trim().endsWith('...')) last.remove();
+      appendBotMessage('Bot', reply || localBotReply(q));
+      chats.push({ id: Date.now()+Math.floor(Math.random()*1000), user:'Bot', text: reply || localBotReply(q), when: new Date().toISOString() });
+      saveToStorage();
+      renderActivity();
+    } else {
+      setTimeout(()=>{ const items = botConversation.querySelectorAll('.item'); const last = items[items.length-1]; if(last && last.textContent && last.textContent.trim().endsWith('...')) last.remove(); appendBotMessage('Bot', localBotReply(q)); }, 300 + Math.random()*400);
+    }
+  }catch(err){
+    const items = botConversation.querySelectorAll('.item');
+    const last = items[items.length-1];
+    if(last && last.textContent && last.textContent.trim().endsWith('...')) last.remove();
+    appendBotMessage('Bot', 'Copilot error: ' + (err.message || 'unknown') + '. Using local bot reply.');
+    setTimeout(()=> appendBotMessage('Bot', localBotReply(q)), 300);
+  }
+});
+if(botInput) botInput.addEventListener('keydown',(e)=>{ if(e.key==='Enter') botAsk && botAsk.click(); });
+
+/* ===== ACTIVITY / POSTS ===== */
+addTapListener(openActivityFromPanel, (e)=>{ e && e.preventDefault(); openModal(activityModal); renderActivityList(); });
+addTapListener(closeActivityModal, ()=> closeModal(activityModal));
+addTapListener(createPostBtn, ()=>{ if(currentUser !== ADMIN_USER){ alert('Admin only'); return; } const t=(postTitleInput?.value||'').trim(), b=(postBodyInput?.value||'').trim(); if(!t||!b){ alert('Fill title and body'); return; } posts.unshift({id:Date.now(),title:t,body:b,user:currentUser,when:new Date().toISOString()}); saveToStorage(); postTitleInput.value=''; postBodyInput.value=''; renderActivityList(); renderAll(); });
+
+function renderActivityList(filter=''){
+  if(!activityList) return;
+  const f = (filter||'').toLowerCase();
+  const items = [];
+  posts.forEach(p => items.push({type:'post',when:p.when,user:p.user,title:p.title,body:p.body}));
+  orders.forEach(o => items.push({type:o.type,when:o.when,user:o.user,title:o.type==='order'?o.service:o.name,body:o.type==='order'?o.details:o.note}));
+  chats.forEach(c => items.push({type:'chat',when:c.when,user:c.user,title:'Chat',body:c.text}));
+  items.sort((a,b)=>new Date(b.when)-new Date(a.when));
+  const shown = items.filter(i => !f || JSON.stringify(i).toLowerCase().includes(f));
+  if(!shown.length){ activityList.innerHTML = '<div class="kv">No activity found.</div>'; return; }
+  activityList.innerHTML = shown.map(i=>`<div class="item"><div style="display:flex;justify-content:space-between"><strong>${escapeHtml(i.type.toUpperCase())}: ${escapeHtml(i.title)}</strong><small class="kv">${new Date(i.when).toLocaleString()}</small></div><div class="kv" style="margin-top:6px">${escapeHtml(i.user||'')}</div><div style="margin-top:8px">${escapeHtml(i.body)}</div></div>`).join('');
+}
+
+/* ===== ADMIN ===== */
+addTapListener(openAdmin, (e)=>{ e && e.preventDefault(); if(currentUser===ADMIN_USER) openAdminModal(); else openModal(adminLoginModal); });
+addTapListener(adminLoginBtn, ()=>{ const u=(adminLoginUser?.value||'').trim(); const p=(adminLoginPass?.value||''); if(u===ADMIN_USER && p===ADMIN_PASS){ currentUser=ADMIN_USER; updateAuthUI(); adminLoginUser.value=''; adminLoginPass.value=''; adminLoginError.style.display='none'; closeModal(adminLoginModal); openAdminModal(); } else { adminLoginError.textContent='Invalid admin credentials'; adminLoginError.style.display='block'; } });
+addTapListener(closeAdminLogin, ()=> closeModal(adminLoginModal) );
+
+function openAdminModal(){ if(currentUser !== ADMIN_USER){ alert('Admin only'); return; } openModal(adminModal); renderAdminPane('admin-notes'); }
+adminTabs.forEach(btn=> addTapListener(btn, ()=>{ adminTabs.forEach(t=>t.classList.toggle('active', t===btn)); renderAdminPane(btn.dataset.tab); }));
+
+function renderAdminPane(tab){
+  if(!adminContent) return;
+  if(tab==='admin-notes'){ const notes = orders.filter(o=>o.type==='note'); if(!notes.length) adminContent.innerHTML='<div class="kv">No notes found.</div>'; else adminContent.innerHTML = notes.map(n=>`<div class="item"><div style="display:flex;justify-content:space-between"><strong>${escapeHtml(n.name)}</strong><small class="kv">${new Date(n.when).toLocaleString()}</small></div><div class="kv">${escapeHtml(n.contact)} • ${escapeHtml(n.user)}</div><div style="margin-top:8px">${escapeHtml(n.note)}</div><div style="margin-top:8px"><button data-id="${n.id}" class="small-btn admin-delete-note" type="button">Delete</button></div></div>`).join(''); }
+  else if(tab==='admin-orders'){ const ord = orders.filter(o=>o.type==='order'); if(!ord.length) adminContent.innerHTML='<div class="kv">No orders.</div>'; else adminContent.innerHTML = ord.map(o=>`<div class="item"><div style="display:flex;justify-content:space-between"><strong>Order: ${escapeHtml(o.service)}</strong><small class="kv">${new Date(o.when).toLocaleString()}</small></div><div class="kv">${escapeHtml(o.name)} • ${escapeHtml(o.contact)} • ${escapeHtml(o.user)}</div><div style="margin-top:8px">${escapeHtml(o.details)}</div><div style="margin-top:8px"><button data-id="${o.id}" class="small-btn admin-delete-order" type="button">Delete</button></div></div>`).join(''); }
+  else if(tab==='admin-chats'){ if(!chats.length) adminContent.innerHTML='<div class="kv">No chats.</div>'; else adminContent.innerHTML = chats.map(c=>`<div class="item"><div style="display:flex;justify-content:space-between"><strong>${escapeHtml(c.user)}</strong><small class="kv">${new Date(c.when).toLocaleString()}</small></div><div style="margin-top:8px">${escapeHtml(c.text)}</div></div>`).join(''); }
+  else if(tab==='admin-posts'){ if(!posts.length) adminContent.innerHTML='<div class="kv">No posts.</div>'; else adminContent.innerHTML = posts.map(p=>`<div class="item"><div style="display:flex;justify-content:space-between"><strong>${escapeHtml(p.title)}</strong><small class="kv">${new Date(p.when).toLocaleString()}</small></div><div style="margin-top:8px">${escapeHtml(p.body)}</div><div style="margin-top:8px"><button data-id="${p.id}" class="small-btn admin-delete-post" type="button">Delete</button></div></div>`).join(''); }
+}
+
+if(adminContent){
+  adminContent.addEventListener('click',(e)=>{
+    const delNote = e.target.closest && e.target.closest('.admin-delete-note'); if(delNote){ const id=Number(delNote.getAttribute('data-id')); if(confirm('Delete note?')){ orders=orders.filter(o=>o.id!==id); saveToStorage(); renderAdminPane('admin-notes'); renderOrders(); renderActivity(); } return; }
+    const delOrder = e.target.closest && e.target.closest('.admin-delete-order'); if(delOrder){ const id=Number(delOrder.getAttribute('data-id')); if(confirm('Delete order?')){ orders=orders.filter(o=>o.id!==id); saveToStorage(); renderAdminPane('admin-orders'); renderOrders(); renderActivity(); } return; }
+    const delPost = e.target.closest && e.target.closest('.admin-delete-post'); if(delPost){ const id=Number(delPost.getAttribute('data-id')); if(confirm('Delete post?')){ posts=posts.filter(p=>p.id!==id); saveToStorage(); renderAdminPane('admin-posts'); renderActivity(); } return; }
+  });
+}
+addTapListener(adminExportBtn, ()=> downloadJSON({users,orders,chats,posts,exportedAt:new Date().toISOString()}, 'happyhandyman_export.json'));
+addTapListener(adminClearAll, ()=>{ if(!confirm('Clear all stored data?')) return; orders=[];chats=[];posts=[];saveToStorage(); renderAll(); renderAdminPane('admin-notes'); alert('All cleared.'); });
+
+/* ===== ACTIVITY FEED ===== */
+function renderActivity(){ if(!activityFeedEl) return; const items=[]; posts.forEach(p=>items.push({type:'post',when:p.when,user:p.user,title:p.title,body:p.body})); orders.forEach(o=>items.push({type:o.type,when:o.when,user:o.user,title:o.type==='order'?o.service:o.name,body:o.type==='order'?o.details:o.note})); chats.forEach(c=>items.push({type:'chat',when:c.when,user:c.user,title:'Chat',body:c.text})); items.sort((a,b)=>new Date(b.when)-new Date(a.when)); if(!items.length){ activityFeedEl.innerHTML='<div class="kv">No activity yet.</div>'; activityList && renderActivityList(); return; } activityFeedEl.innerHTML = items.slice(0,20).map(i=>`<div class="item"><div style="display:flex;justify-content:space-between"><strong>${escapeHtml(i.type.toUpperCase())}: ${escapeHtml(i.title)}</strong><small class="kv">${new Date(i.when).toLocaleString()}</small></div><div class="kv">${escapeHtml(i.user||'')}</div><div style="margin-top:8px">${escapeHtml(i.body)}</div></div>`).join(''); activityList && renderActivityList(); }
+
+/* ===== RENDER ALL ===== */
+function renderAll(){ renderOrders(); renderChat(); renderActivity(); renderSlider(); setTimeout(()=>updateSlider(),150); if(adminModal && adminModal.classList.contains('open')) renderAdminPane(document.querySelector('.tabAdmin.active')?.dataset.tab || 'admin-notes'); }
+
+/* ===== LOAD FROM STORAGE ===== */
+function loadFromStorage(){ users = JSON.parse(localStorage.getItem(KEY_USERS)) || users; currentUser = localStorage.getItem(KEY_CURRENT) || currentUser; orders = JSON.parse(localStorage.getItem(KEY_ORDERS)) || orders; chats = JSON.parse(localStorage.getItem(KEY_CHATS)) || chats; posts = JSON.parse(localStorage.getItem(KEY_POSTS)) || posts; copilotKey = localStorage.getItem(KEY_COPILOT) || copilotKey; useCopilot = localStorage.getItem(KEY_USE_COPILOT) === 'true' || useCopilot; updateAuthUI(); renderAll(); }
+loadFromStorage();
+
+/* ===== small safety: periodic save ===== */
+setInterval(()=>saveToStorage(), 10000);
+
+/* ===== small nav links (smooth scroll) ===== */
+document.querySelectorAll('.side-link').forEach(a=>{
+  a.addEventListener('click', e=>{
+    const t = a.getAttribute('data-target');
+    if(t){ const elt = document.getElementById(t); if(elt) elt.scrollIntoView({behavior:'smooth', block:'start'}); }
+    sidePanel && sidePanel.classList.remove('open');
+  });
+});
+
+/* ===== initial friendly bot message ===== */
+if(botConversation && !botConversation.innerHTML.trim()) appendBotMessage('Bot','Hi, I am HappyHandyman Bot — ask me about services or how to order.');
+
+/* ===== final renders ===== */
+renderAll();
+
+/* expose for debugging */
+window.hh = { get users(){ return users }, get currentUser(){ return currentUser }, get orders(){ return orders }, get chats(){ return chats }, get posts(){ return posts }, saveToStorage };
+
+/* ===== console ===== */
+console.info('Happy Handyman final file loaded — touch-click robustness enabled, in-app/browser fallbacks included, all features active.');
+</script>
+</body>
+</html>

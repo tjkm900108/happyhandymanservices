@@ -1,0 +1,76 @@
+[debug] [2026-06-24T03:57:54.456Z] ----------------------------------------------------------------------
+[debug] [2026-06-24T03:57:54.493Z] Command:       /data/data/com.termux/files/usr/bin/node /data/data/com.termux/files/usr/bin/firebase projects:list --token 4/0AdkVLPwgYzYBEHbVf1XPGFdwbA6N
+[debug] [2026-06-24T03:57:54.497Z] CLI Version:   15.22.1
+[debug] [2026-06-24T03:57:54.498Z] Platform:      android
+[debug] [2026-06-24T03:57:54.499Z] Node Version:  v24.17.0
+[debug] [2026-06-24T03:57:54.501Z] Detected Agent: unknown
+[debug] [2026-06-24T03:57:54.502Z] Time:          Wed Jun 24 2026 05:57:54 GMT+0200 (South Africa Standard Time)
+[debug] [2026-06-24T03:57:54.503Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-06-24T03:57:54.593Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-06-24T03:57:54.596Z] > authorizing via --token option
+[warn] ⚠  Authenticating with `--token` is deprecated and will be removed in a future major version of `firebase-tools`. Instead, use a service account key with `GOOGLE_APPLICATION_CREDENTIALS`: https://cloud.google.com/docs/authentication/getting-started 
+[debug] [2026-06-24T03:57:54.710Z] No OAuth tokens found
+[debug] [2026-06-24T03:57:54.712Z] No OAuth tokens found
+[debug] [2026-06-24T03:57:54.715Z] > refreshing access token with scopes: []
+[debug] [2026-06-24T03:57:54.747Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-06-24T03:57:54.748Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[error] Authentication Error: Your credentials are no longer valid. Please run firebase login --reauth
+
+For CI servers and headless environments, generate a new token with firebase login:ci
+[debug] [2026-06-24T03:57:55.795Z] Authentication Error: Your credentials are no longer valid. Please run firebase login --reauth
+
+For CI servers and headless environments, generate a new token with firebase login:ci
+[debug] [2026-06-24T03:57:56.416Z] FirebaseError: Authentication Error: Your credentials are no longer valid. Please run firebase login --reauth
+
+For CI servers and headless environments, generate a new token with firebase login:ci
+    at invalidCredentialError (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/auth.js:176:12)
+    at refreshTokens (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/auth.js:589:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async getAccessToken (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/apiv2.js:52:18)
+    at async Client.addAuthHeader (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/apiv2.js:182:21)
+    at async Client.request (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/apiv2.js:129:34)
+    at async getProjectPage (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/management/projects.js:287:17)
+    at async getFirebaseProjectPage (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/management/projects.js:304:23)
+    at async listFirebaseProjects (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/management/projects.js:333:29)
+    at async Command.actionFn (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/commands/projects-list.js:51:20)
+[error] 
+[error] Error: Failed to list Firebase projects. See firebase-debug.log for more info.
+[debug] [2026-06-24T04:00:58.376Z] ----------------------------------------------------------------------
+[debug] [2026-06-24T04:00:58.417Z] Command:       /data/data/com.termux/files/usr/bin/node /data/data/com.termux/files/usr/bin/firebase projects:list --token 4/0AdkVLPwgEm89dJdkASqJzHtM9RvdinXPTfeE-blWyye1q9bAUbi5EBqpTmL0pxHGrjsa0A
+[debug] [2026-06-24T04:00:58.421Z] CLI Version:   15.22.1
+[debug] [2026-06-24T04:00:58.422Z] Platform:      android
+[debug] [2026-06-24T04:00:58.424Z] Node Version:  v24.17.0
+[debug] [2026-06-24T04:00:58.426Z] Detected Agent: unknown
+[debug] [2026-06-24T04:00:58.428Z] Time:          Wed Jun 24 2026 06:00:58 GMT+0200 (South Africa Standard Time)
+[debug] [2026-06-24T04:00:58.429Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-06-24T04:00:58.527Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-06-24T04:00:58.530Z] > authorizing via --token option
+[warn] ⚠  Authenticating with `--token` is deprecated and will be removed in a future major version of `firebase-tools`. Instead, use a service account key with `GOOGLE_APPLICATION_CREDENTIALS`: https://cloud.google.com/docs/authentication/getting-started 
+[debug] [2026-06-24T04:00:58.671Z] No OAuth tokens found
+[debug] [2026-06-24T04:00:58.677Z] No OAuth tokens found
+[debug] [2026-06-24T04:00:58.681Z] > refreshing access token with scopes: []
+[debug] [2026-06-24T04:00:58.715Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-06-24T04:00:58.716Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[error] Authentication Error: Your credentials are no longer valid. Please run firebase login --reauth
+
+For CI servers and headless environments, generate a new token with firebase login:ci
+[debug] [2026-06-24T04:00:59.781Z] Authentication Error: Your credentials are no longer valid. Please run firebase login --reauth
+
+For CI servers and headless environments, generate a new token with firebase login:ci
+[debug] [2026-06-24T04:01:00.402Z] FirebaseError: Authentication Error: Your credentials are no longer valid. Please run firebase login --reauth
+
+For CI servers and headless environments, generate a new token with firebase login:ci
+    at invalidCredentialError (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/auth.js:176:12)
+    at refreshTokens (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/auth.js:589:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async getAccessToken (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/apiv2.js:52:18)
+    at async Client.addAuthHeader (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/apiv2.js:182:21)
+    at async Client.request (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/apiv2.js:129:34)
+    at async getProjectPage (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/management/projects.js:287:17)
+    at async getFirebaseProjectPage (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/management/projects.js:304:23)
+    at async listFirebaseProjects (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/management/projects.js:333:29)
+    at async Command.actionFn (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/commands/projects-list.js:51:20)
+[error] 
+[error] Error: Failed to list Firebase projects. See firebase-debug.log for more info.
